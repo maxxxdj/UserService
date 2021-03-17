@@ -2,13 +2,11 @@ package com.example.demo.Entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity(name = "users")
-//@Document(collection = "users")
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor

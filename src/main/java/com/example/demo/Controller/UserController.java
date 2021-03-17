@@ -1,12 +1,13 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Entities.User;
-import com.example.demo.Service.CachingServer;
-import com.example.demo.UserRepository.CachingRepository;
+import com.example.demo.Service.CachingService;
 import com.example.demo.Service.UserService;
-import com.example.demo.config.KafkaConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jackson.JsonObjectDeserializer;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,30 +21,26 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private CachingServer cachingServer;
+    private CachingService cachingService;
 
     //kafka queue
-    private final KafkaTemplate<String, User> kafkaTemplate =
-            new KafkaTemplate<>(KafkaConfig.producerFactory());
+    @Autowired
+    private KafkaTemplate<String,User> kafkaTemplate;
     private static final String TOPIC = "USERS";
 
-    @KafkaListener(topics = "USERS", groupId = "group_id")
-    public void consumerListen(User user) {
-        cachingServer.save(user);
-    }
-
-    //testing endpoint
-    @GetMapping("/kafka/produce")
-    public void produce() {
-        User user1 = new User(2L, "Venci_22", "Vencislav", "venci+parola1");
-        kafkaTemplate.send(TOPIC, user1);
-
+    @KafkaListener(topics = "USERS",groupId = "group_id")
+    public void listen(String message){
+        try {
+            User user = new ObjectMapper().readValue(message, User.class);
+            cachingService.save(user);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
     @PostMapping("/createUser")
     public User createUser(@RequestBody User user) {
-        kafkaTemplate.send(TOPIC, user);
-        consumerListen(user);
+        kafkaTemplate.send(TOPIC,user);
         return userService.save(user);
     }
 
@@ -56,7 +53,7 @@ public class UserController {
 
     @GetMapping("/getUsers")
     public List<User> getUsers() {
-        return cachingServer.findAll();
+        return cachingService.findAll();
     }
 
 }
