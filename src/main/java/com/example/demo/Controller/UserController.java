@@ -1,12 +1,12 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Entities.User;
+import com.example.demo.Exceptions.EmptyDBException;
+import com.example.demo.Exceptions.UserNotFoundException;
 import com.example.demo.Service.CachingService;
 import com.example.demo.Service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -25,11 +25,11 @@ public class UserController {
 
     //kafka queue
     @Autowired
-    private KafkaTemplate<String,User> kafkaTemplate;
+    private KafkaTemplate<String, User> kafkaTemplate;
     private static final String TOPIC = "USERS";
 
-    @KafkaListener(topics = "USERS",groupId = "group_id")
-    public void listen(String message){
+    @KafkaListener(topics = "USERS", groupId = "group_id")
+    public void listen(String message) {
         try {
             User user = new ObjectMapper().readValue(message, User.class);
             cachingService.save(user);
@@ -40,20 +40,28 @@ public class UserController {
 
     @PostMapping("/createUser")
     public User createUser(@RequestBody User user) {
-        kafkaTemplate.send(TOPIC,user);
+        kafkaTemplate.send(TOPIC, user);
         return userService.save(user);
     }
 
     @RequestMapping(value = "/users/{name}", method = RequestMethod.GET)
     @Query("select name from users where name=?1")
     public List<User> getUserByName(@PathVariable String name) {
-        return userService.getUsersByName(name);
+        List<User> usersByName = userService.getUsersByName(name);
+        if (usersByName.isEmpty()) {
+            throw new UserNotFoundException(name);
+        } else {
+            return usersByName;
+        }
     }
-
-
-    @GetMapping("/getUsers")
+    @GetMapping("/getAllUsers")
     public List<User> getUsers() {
-        return cachingService.findAll();
+        if (cachingService.findAll().isEmpty()) {
+            throw new EmptyDBException();
+        } else {
+            List<User> users = cachingService.findAll();
+            return cachingService.findAll();
+        }
     }
 
 }
