@@ -54,6 +54,7 @@ public class UserController {
             return usersByName;
         }
     }
+
     @GetMapping("/getAllUsers")
     public List<User> getUsers() {
         if (cachingService.findAll().isEmpty()) {
@@ -63,6 +64,5 @@ public class UserController {
             return cachingService.findAll();
         }
     }
-
 }
 
