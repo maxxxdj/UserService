@@ -8,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import javax.persistence.*;
 
 @Entity(name = "users")
+//@Document(collection = "users")
 @Data
 @RequiredArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
