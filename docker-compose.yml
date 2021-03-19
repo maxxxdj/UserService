@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+#  user-service-app:
+#    image: user-service-app
+#    container_name: myapp
+#  java:
+#    image: openjdk:latest
+#    container_name: openjdk
+
+  zoekeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+  mysql-db:
+    image: mysql
+    container_name: mysql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_DATABASE: users_db
+    ports:
+      - "3306:3306"
+
+
+
+
