@@ -16,5 +16,11 @@ public class UserNotFoundAdvice {
     String userNotFoundHandler(UserNotFoundException ex){
         return ex.getMessage();
     }
+    @ResponseBody
+    @ExceptionHandler(EmptyDBException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    String emptyDBException(EmptyDBException ex){
+        return ex.getMessage();
+    }
 
 }

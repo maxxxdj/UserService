@@ -64,5 +64,15 @@ public class UserController {
             return cachingService.findAll();
         }
     }
+
+
+    @DeleteMapping("/deleteAllUsers")
+    public String deleteAll(){
+        userService.deleteAll();
+        cachingService.deleteAll();
+        return "Flush! :)";
+    }
+
+
 }
 
