@@ -1,5 +1,7 @@
-FROM openjdk:latest
+FROM openjdk:8
 
-COPY target/docker-dela-task.jar /UserService.jar
+ADD target/docker-dela-task.jar /UserService.jar
+
+EXPOSE 8080
 
 CMD ["java", "-jar", "/UserService.jar"]
